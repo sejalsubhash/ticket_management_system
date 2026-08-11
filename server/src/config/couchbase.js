@@ -21,7 +21,6 @@ async function getCluster() {
     try {
       cluster = await Cluster.connect(connString, clusterOptions);
       bucketInstance = cluster.bucket(bucketName);
-      await bucketInstance.waitUntilReady({ timeout: 10000 });
     } catch (err) {
       cluster = null;
       bucketInstance = null;
