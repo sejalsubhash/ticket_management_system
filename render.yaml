@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: ticket-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    envVars:
+      - key: COUCHBASE_CONN_STRING
+        value: couchbases://cb.fig9ra1k4bwds7df.cloud.couchbase.com
+      - key: COUCHBASE_USERNAME
+        value: admin
+      - key: COUCHBASE_PASSWORD
+        sync: false
+      - key: COUCHBASE_BUCKET
+        value: travel-sample
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ticket-client.onrender.com
+      - key: PORT
+        value: 5000
+    healthCheckPath: /api/health
+
+  - type: web
+    name: ticket-client
+    runtime: docker
+    dockerfilePath: ./client/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://ticket-api.onrender.com/api/*
