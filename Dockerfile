@@ -4,7 +4,7 @@ WORKDIR /app/client
 
 COPY client/package*.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY client/ ./
 
@@ -16,7 +16,7 @@ WORKDIR /app
 
 COPY server/package*.json ./server/
 
-RUN cd server && npm ci --only=production
+RUN cd server && npm install --omit=dev
 
 COPY server/ ./server/
 
