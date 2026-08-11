@@ -1,13 +1,12 @@
-const { getCollection } = require('../config/couchbase');
+const { getDefaultCollection, getCluster } = require('../config/couchbase');
 const { v4: uuidv4 } = require('uuid');
 
-const COLLECTION = 'tickets';
 const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 const CATEGORIES = ['hardware', 'software', 'network', 'access', 'email', 'other'];
 
 async function createTicket({ title, description, priority = 'medium', category = 'other', createdBy, assignedTo = null }) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   const id = `ticket::${uuidv4()}`;
   const doc = {
     type: 'ticket',
@@ -18,7 +17,6 @@ async function createTicket({ title, description, priority = 'medium', category 
     category,
     createdBy,
     assignedTo,
-    attachments: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -27,24 +25,24 @@ async function createTicket({ title, description, priority = 'medium', category 
 }
 
 async function findTickets({ status, priority, category, assignedTo, createdBy, page = 1, limit = 20 } = {}) {
-  const { cluster } = await require('../config/couchbase').getCluster();
+  const { cluster } = await getCluster();
   let where = ["t.type = 'ticket'"];
   const params = [];
 
-  if (status) { where.push('t.status = $' + (params.length + 1)); params.push(status); }
-  if (priority) { where.push('t.priority = $' + (params.length + 1)); params.push(priority); }
-  if (category) { where.push('t.category = $' + (params.length + 1)); params.push(category); }
-  if (assignedTo) { where.push('t.assignedTo = $' + (params.length + 1)); params.push(assignedTo); }
-  if (createdBy) { where.push('t.createdBy = $' + (params.length + 1)); params.push(createdBy); }
+  if (status) { where.push(`t.status = $${params.length + 1}`); params.push(status); }
+  if (priority) { where.push(`t.priority = $${params.length + 1}`); params.push(priority); }
+  if (category) { where.push(`t.category = $${params.length + 1}`); params.push(category); }
+  if (assignedTo) { where.push(`t.assignedTo = $${params.length + 1}`); params.push(assignedTo); }
+  if (createdBy) { where.push(`t.createdBy = $${params.length + 1}`); params.push(createdBy); }
 
   const offset = (page - 1) * limit;
-  const query = `SELECT META().id as id, t.* FROM \`travel-sample\`._default.tickets t WHERE ${where.join(' AND ')} ORDER BY t.createdAt DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  const query = `SELECT META().id as id, t.* FROM \`travel-sample\`._default._default t WHERE ${where.join(' AND ')} ORDER BY t.createdAt DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
   params.push(limit, offset);
 
   const result = await cluster.query(query, { parameters: params });
   const rows = await result.rows;
 
-  const countQuery = `SELECT COUNT(*) as total FROM \`travel-sample\`._default.tickets t WHERE ${where.join(' AND ')}`;
+  const countQuery = `SELECT COUNT(*) as total FROM \`travel-sample\`._default._default t WHERE ${where.join(' AND ')}`;
   const countResult = await cluster.query(countQuery, { parameters: params.slice(0, -2) });
   const countRows = await countResult.rows;
 
@@ -52,7 +50,7 @@ async function findTickets({ status, priority, category, assignedTo, createdBy, 
 }
 
 async function findTicketById(id) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   try {
     const result = await collection.get(id);
     return { id, ...result.value };
@@ -62,7 +60,7 @@ async function findTicketById(id) {
 }
 
 async function updateTicket(id, updates) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   const existing = await collection.get(id);
   const updated = { ...existing.value, ...updates, updatedAt: new Date().toISOString() };
   await collection.upsert(id, updated);
@@ -70,18 +68,18 @@ async function updateTicket(id, updates) {
 }
 
 async function deleteTicket(id) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   await collection.remove(id);
 }
 
 async function getStats() {
-  const { cluster } = await require('../config/couchbase').getCluster();
+  const { cluster } = await getCluster();
 
-  const statusQuery = `SELECT t.status, COUNT(*) as count FROM \`travel-sample\`._default.tickets t WHERE t.type = 'ticket' GROUP BY t.status`;
-  const priorityQuery = `SELECT t.priority, COUNT(*) as count FROM \`travel-sample\`._default.tickets t WHERE t.type = 'ticket' GROUP BY t.priority`;
-  const categoryQuery = `SELECT t.category, COUNT(*) as count FROM \`travel-sample\`._default.tickets t WHERE t.type = 'ticket' GROUP BY t.category`;
-  const totalQuery = `SELECT COUNT(*) as total FROM \`travel-sample\`._default.tickets t WHERE t.type = 'ticket'`;
-  const recentQuery = `SELECT META().id as id, t.* FROM \`travel-sample\`._default.tickets t WHERE t.type = 'ticket' ORDER BY t.createdAt DESC LIMIT 5`;
+  const statusQuery = `SELECT t.status, COUNT(*) as count FROM \`travel-sample\`._default._default t WHERE t.type = 'ticket' GROUP BY t.status`;
+  const priorityQuery = `SELECT t.priority, COUNT(*) as count FROM \`travel-sample\`._default._default t WHERE t.type = 'ticket' GROUP BY t.priority`;
+  const categoryQuery = `SELECT t.category, COUNT(*) as count FROM \`travel-sample\`._default._default t WHERE t.type = 'ticket' GROUP BY t.category`;
+  const totalQuery = `SELECT COUNT(*) as total FROM \`travel-sample\`._default._default t WHERE t.type = 'ticket'`;
+  const recentQuery = `SELECT META().id as id, t.* FROM \`travel-sample\`._default._default t WHERE t.type = 'ticket' ORDER BY t.createdAt DESC LIMIT 5`;
 
   const [statusResult, priorityResult, categoryResult, totalResult, recentResult] = await Promise.all([
     cluster.query(statusQuery),

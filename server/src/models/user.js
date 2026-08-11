@@ -1,12 +1,9 @@
-const { getCollection } = require('../config/couchbase');
+const { getDefaultCollection, getCluster } = require('../config/couchbase');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
-const COLLECTION = 'users';
-
 async function createUser({ email, password, name, role = 'user', department = '' }) {
-  const { cluster } = await require('../config/couchbase').getCluster();
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   const id = `user::${uuidv4()}`;
   const hashedPassword = await bcrypt.hash(password, 12);
   const doc = {
@@ -25,15 +22,15 @@ async function createUser({ email, password, name, role = 'user', department = '
 }
 
 async function findByEmail(email) {
-  const { cluster } = await require('../config/couchbase').getCluster();
-  const query = `SELECT META().id as id, u.* FROM \`${require('../config/couchbase').getBucket ? 'travel-sample' : 'travel-sample'}\`._default.users u WHERE u.email = $1 AND u.type = 'user' LIMIT 1`;
+  const { cluster } = await getCluster();
+  const query = `SELECT META().id as id, u.* FROM \`travel-sample\`._default._default u WHERE u.email = $1 AND u.type = 'user' LIMIT 1`;
   const result = await cluster.query(query, { parameters: [email.toLowerCase()] });
   const rows = await result.rows;
   return rows.length > 0 ? rows[0] : null;
 }
 
 async function findById(id) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   try {
     const result = await collection.get(id);
     const { password: _, ...userWithoutPassword } = result.value;
@@ -44,15 +41,15 @@ async function findById(id) {
 }
 
 async function findAll() {
-  const { cluster } = await require('../config/couchbase').getCluster();
-  const query = `SELECT META().id as id, u.* FROM \`travel-sample\`._default.users u WHERE u.type = 'user' ORDER BY u.createdAt DESC`;
+  const { cluster } = await getCluster();
+  const query = `SELECT META().id as id, u.* FROM \`travel-sample\`._default._default u WHERE u.type = 'user' ORDER BY u.createdAt DESC`;
   const result = await cluster.query(query);
   const rows = await result.rows;
   return rows.map(({ password, ...user }) => user);
 }
 
 async function updateUser(id, updates) {
-  const collection = await getCollection('_default', COLLECTION);
+  const collection = await getDefaultCollection();
   const existing = await collection.get(id);
   const updated = { ...existing.value, ...updates, updatedAt: new Date().toISOString() };
   if (updates.password) {
