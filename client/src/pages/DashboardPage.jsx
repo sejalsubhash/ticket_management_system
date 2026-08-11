@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Loading from '../components/common/Loading';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { FiTicket, FiAlertTriangle, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { FiTag, FiAlertTriangle, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 const COLORS = ['#0891b2', '#d97706', '#16a34a', '#6b7280'];
 
@@ -29,7 +29,7 @@ export default function DashboardPage() {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}><FiTicket /></div>
+          <div className="stat-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}><FiTag /></div>
           <div className="stat-info"><h3>{stats.total}</h3><p>Total Tickets</p></div>
         </div>
         <div className="stat-card">

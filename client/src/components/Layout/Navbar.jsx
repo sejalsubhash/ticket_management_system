@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiTicket, FiLogOut, FiUser, FiShield, FiGrid } from 'react-icons/fi';
+import { FiTag, FiLogOut, FiUser, FiShield, FiGrid } from 'react-icons/fi';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -26,7 +26,7 @@ export default function Navbar() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
         <Link to="/" style={{ color: 'white', fontWeight: '700', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FiTicket /> Helpdesk
+          <FiTag /> Helpdesk
         </Link>
         {user && (
           <div style={{ display: 'flex', gap: '16px' }}>
@@ -34,7 +34,7 @@ export default function Navbar() {
               <FiGrid /> Dashboard
             </Link>
             <Link to="/tickets" style={{ color: 'var(--gray-300)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <FiTicket /> Tickets
+              <FiTag /> Tickets
             </Link>
             {user.role === 'admin' && (
               <Link to="/admin/users" style={{ color: 'var(--gray-300)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
