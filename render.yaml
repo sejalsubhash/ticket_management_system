@@ -21,15 +21,3 @@ services:
       - key: PORT
         value: 5000
     healthCheckPath: /api/health
-
-  - type: web
-    name: ticket-client
-    runtime: docker
-    dockerfilePath: ./client/Dockerfile
-    envVars:
-      - key: NODE_ENV
-        value: production
-    routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://ticket-api.onrender.com/api/*
