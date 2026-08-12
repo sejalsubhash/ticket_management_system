@@ -13,8 +13,14 @@ exports.create = async (req, res, next) => {
     if (category && !CATEGORIES.includes(category)) {
       return res.status(400).json({ error: `Category must be one of: ${CATEGORIES.join(', ')}` });
     }
+    const attachments = (req.files || []).map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+    }));
     const ticket = await createTicket({
-      title, description, priority, category, createdBy: req.user.id, assignedTo,
+      title, description, priority, category, createdBy: req.user.id, assignedTo, attachments,
     });
     res.status(201).json({ ticket });
   } catch (error) {
@@ -24,12 +30,12 @@ exports.create = async (req, res, next) => {
 
 exports.list = async (req, res, next) => {
   try {
-    const { status, priority, category, assignedTo, page, limit } = req.query;
+    const { status, priority, category, assignedTo, startDate, endDate, page, limit } = req.query;
     let createdBy;
     if (req.user.role === 'user') {
       createdBy = req.user.id;
     }
-    const result = await findTickets({ status, priority, category, assignedTo, createdBy, page: parseInt(page) || 1, limit: parseInt(limit) || 20 });
+    const result = await findTickets({ status, priority, category, assignedTo, createdBy, startDate, endDate, page: parseInt(page) || 1, limit: parseInt(limit) || 20 });
     res.json(result);
   } catch (error) {
     next(error);
@@ -100,8 +106,14 @@ exports.addComment = async (req, res, next) => {
     if (!text) {
       return res.status(400).json({ error: 'Comment text is required' });
     }
+    const attachments = (req.files || []).map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+    }));
     const comment = await createComment({
-      ticketId: req.params.id, userId: req.user.id, userName: req.user.name, text,
+      ticketId: req.params.id, userId: req.user.id, userName: req.user.name, text, attachments,
     });
     res.status(201).json({ comment });
   } catch (error) {
@@ -122,6 +134,54 @@ exports.dashboard = async (req, res, next) => {
   try {
     const stats = await getStats();
     res.json(stats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.bulkCreate = async (req, res, next) => {
+  try {
+    const { tickets } = req.body;
+    if (!Array.isArray(tickets) || tickets.length === 0) {
+      return res.status(400).json({ error: 'Tickets array is required' });
+    }
+    if (tickets.length > 100) {
+      return res.status(400).json({ error: 'Maximum 100 tickets per import' });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (let i = 0; i < tickets.length; i++) {
+      const { title, description, priority, category, assignedTo } = tickets[i];
+      if (!title || !description) {
+        errors.push({ index: i, error: 'Title and description are required' });
+        continue;
+      }
+      if (priority && !PRIORITIES.includes(priority)) {
+        errors.push({ index: i, error: `Invalid priority: ${priority}` });
+        continue;
+      }
+      if (category && !CATEGORIES.includes(category)) {
+        errors.push({ index: i, error: `Invalid category: ${category}` });
+        continue;
+      }
+      try {
+        const ticket = await createTicket({
+          title, description, priority, category, createdBy: req.user.id, assignedTo,
+        });
+        results.push(ticket);
+      } catch (err) {
+        errors.push({ index: i, error: err.message });
+      }
+    }
+
+    res.status(201).json({
+      imported: results.length,
+      failed: errors.length,
+      errors,
+      tickets: results,
+    });
   } catch (error) {
     next(error);
   }

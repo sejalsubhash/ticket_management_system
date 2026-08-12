@@ -6,7 +6,7 @@ import PriorityBadge from '../components/common/PriorityBadge';
 import CommentSection from '../components/Tickets/CommentSection';
 import Loading from '../components/common/Loading';
 import toast from 'react-hot-toast';
-import { FiArrowLeft, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiTrash2, FiPaperclip, FiDownload } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 export default function TicketDetailPage() {
@@ -57,9 +57,11 @@ export default function TicketDetailPage() {
     }
   };
 
-  const handleAddComment = async (text) => {
+  const handleAddComment = async (formData) => {
     try {
-      const res = await api.post(`/tickets/${id}/comments`, { text });
+      const res = await api.post(`/tickets/${id}/comments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setComments([...comments, res.data.comment]);
       toast.success('Comment added');
     } catch (err) {
@@ -92,17 +94,39 @@ export default function TicketDetailPage() {
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ color: 'var(--gray-600)', fontSize: '0.875rem', lineHeight: '1.8' }}>{ticket.description}</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: '1.8' }}>{ticket.description}</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', fontSize: '0.875rem' }}>
+        <div className="ticket-meta">
           <div><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleString()}</div>
           <div><strong>Updated:</strong> {new Date(ticket.updatedAt).toLocaleString()}</div>
           <div><strong>Created By:</strong> {ticket.createdBy}</div>
           <div><strong>Assigned To:</strong> {ticket.assignedTo || 'Unassigned'}</div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: '16px' }}>
+        {ticket.attachments && ticket.attachments.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <FiPaperclip /> Attachments ({ticket.attachments.length})
+            </h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {ticket.attachments.map((file, index) => (
+                <a
+                  key={index}
+                  href={`/uploads/${file.filename}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <FiDownload /> {file.originalname}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '12px' }}>Update Status</h3>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {['open', 'in_progress', 'resolved', 'closed'].map((s) => (
@@ -112,7 +136,7 @@ export default function TicketDetailPage() {
                 onClick={() => handleStatusChange(s)}
                 disabled={updating || ticket.status === s}
               >
-                {s.replace('_', ' ')}
+                {updating && ticket.status !== s ? <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span> : s.replace('_', ' ')}
               </button>
             ))}
           </div>

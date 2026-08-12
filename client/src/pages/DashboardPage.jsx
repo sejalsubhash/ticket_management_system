@@ -46,7 +46,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+      <div className="charts-grid">
         <div className="card">
           <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '16px' }}>Tickets by Status</h3>
           {statusData.length > 0 ? (
@@ -60,7 +60,7 @@ export default function DashboardPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <p style={{ color: 'var(--gray-500)' }}>No data</p>}
+          ) : <p style={{ color: 'var(--text-muted)' }}>No data</p>}
         </div>
         <div className="card">
           <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '16px' }}>Tickets by Priority</h3>
@@ -73,29 +73,31 @@ export default function DashboardPage() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          ) : <p style={{ color: 'var(--gray-500)' }}>No data</p>}
+          ) : <p style={{ color: 'var(--text-muted)' }}>No data</p>}
         </div>
       </div>
 
       <div className="card">
         <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '16px' }}>Recent Tickets</h3>
         {stats.recent?.length > 0 ? (
-          <table className="table">
-            <thead>
-              <tr><th>Title</th><th>Status</th><th>Priority</th><th>Created</th></tr>
-            </thead>
-            <tbody>
-              {stats.recent.map(t => (
-                <tr key={t.id}>
-                  <td><strong>{t.title}</strong></td>
-                  <td><span className={`badge badge-${t.status}`}>{t.status?.replace('_', ' ')}</span></td>
-                  <td><span className={`badge badge-${t.priority}`}>{t.priority}</span></td>
-                  <td style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>{new Date(t.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : <p style={{ color: 'var(--gray-500)' }}>No tickets yet.</p>}
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr><th>Title</th><th>Status</th><th>Priority</th><th>Created</th></tr>
+              </thead>
+              <tbody>
+                {stats.recent.map(t => (
+                  <tr key={t.id}>
+                    <td><strong>{t.title}</strong></td>
+                    <td><span className={`badge badge-${t.status}`}>{t.status?.replace('_', ' ')}</span></td>
+                    <td><span className={`badge badge-${t.priority}`}>{t.priority}</span></td>
+                    <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(t.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p style={{ color: 'var(--text-muted)' }}>No tickets yet.</p>}
       </div>
     </div>
   );

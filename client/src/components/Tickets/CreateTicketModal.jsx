@@ -1,21 +1,32 @@
 import { useState } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiPaperclip } from 'react-icons/fi';
 
 export default function CreateTicketModal({ onClose, onSubmit }) {
   const [form, setForm] = useState({
     title: '', description: '', priority: 'medium', category: 'other',
   });
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    setFiles(Array.from(e.target.files));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit(form);
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('description', form.description);
+      formData.append('priority', form.priority);
+      formData.append('category', form.category);
+      files.forEach(file => formData.append('files', file));
+      await onSubmit(formData);
     } finally {
       setLoading(false);
     }
@@ -37,7 +48,7 @@ export default function CreateTicketModal({ onClose, onSubmit }) {
             <label>Description</label>
             <textarea name="description" value={form.description} onChange={handleChange} required rows={4} placeholder="Detailed description..." />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="form-row">
             <div className="form-group">
               <label>Priority</label>
               <select name="priority" value={form.priority} onChange={handleChange}>
@@ -59,10 +70,25 @@ export default function CreateTicketModal({ onClose, onSubmit }) {
               </select>
             </div>
           </div>
+          <div className="form-group">
+            <label><FiPaperclip /> Attachments (max 5, 10MB each)</label>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.csv,.xlsx"
+              style={{ padding: '8px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+            />
+            {files.length > 0 && (
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                {files.length} file(s) selected
+              </p>
+            )}
+          </div>
           <div className="modal-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Ticket'}
+              {loading ? <><span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span> Creating...</> : 'Create Ticket'}
             </button>
           </div>
         </form>

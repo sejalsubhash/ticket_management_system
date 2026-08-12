@@ -5,7 +5,7 @@ const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 const CATEGORIES = ['hardware', 'software', 'network', 'access', 'email', 'other'];
 
-async function createTicket({ title, description, priority = 'medium', category = 'other', createdBy, assignedTo = null }) {
+async function createTicket({ title, description, priority = 'medium', category = 'other', createdBy, assignedTo = null, attachments = [] }) {
   const collection = await getDefaultCollection();
   const id = `ticket::${uuidv4()}`;
   const doc = {
@@ -17,6 +17,7 @@ async function createTicket({ title, description, priority = 'medium', category 
     category,
     createdBy,
     assignedTo,
+    attachments,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -24,7 +25,7 @@ async function createTicket({ title, description, priority = 'medium', category 
   return { id, ...doc };
 }
 
-async function findTickets({ status, priority, category, assignedTo, createdBy, page = 1, limit = 20 } = {}) {
+async function findTickets({ status, priority, category, assignedTo, createdBy, startDate, endDate, page = 1, limit = 20 } = {}) {
   const { cluster } = await getCluster();
   let where = ["t.type = 'ticket'"];
   const params = [];
@@ -34,6 +35,8 @@ async function findTickets({ status, priority, category, assignedTo, createdBy, 
   if (category) { where.push(`t.category = $${params.length + 1}`); params.push(category); }
   if (assignedTo) { where.push(`t.assignedTo = $${params.length + 1}`); params.push(assignedTo); }
   if (createdBy) { where.push(`t.createdBy = $${params.length + 1}`); params.push(createdBy); }
+  if (startDate) { where.push(`t.createdAt >= $${params.length + 1}`); params.push(startDate); }
+  if (endDate) { where.push(`t.createdAt <= $${params.length + 1}`); params.push(endDate); }
 
   const offset = (page - 1) * limit;
   const query = `SELECT META().id as id, t.* FROM \`travel-sample\`._default._default t WHERE ${where.join(' AND ')} ORDER BY t.createdAt DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;

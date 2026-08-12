@@ -1,7 +1,7 @@
 const { getDefaultCollection } = require('../config/couchbase');
 const { v4: uuidv4 } = require('uuid');
 
-async function createComment({ ticketId, userId, userName, text }) {
+async function createComment({ ticketId, userId, userName, text, attachments = [] }) {
   const collection = await getDefaultCollection();
   const id = `comment::${uuidv4()}`;
   const doc = {
@@ -10,6 +10,7 @@ async function createComment({ ticketId, userId, userName, text }) {
     userId,
     userName,
     text,
+    attachments,
     createdAt: new Date().toISOString(),
   };
   await collection.upsert(id, doc);

@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import TicketList from '../components/Tickets/TicketList';
 import CreateTicketModal from '../components/Tickets/CreateTicketModal';
+import BulkImportModal from '../components/Tickets/BulkImportModal';
 import Loading from '../components/common/Loading';
 import toast from 'react-hot-toast';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiUpload } from 'react-icons/fi';
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [filters, setFilters] = useState({ status: '', priority: '', category: '' });
+  const [showImport, setShowImport] = useState(false);
+  const [filters, setFilters] = useState({ status: '', priority: '', category: '', startDate: '', endDate: '' });
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -19,6 +21,8 @@ export default function TicketsPage() {
       if (filters.status) params.status = filters.status;
       if (filters.priority) params.priority = filters.priority;
       if (filters.category) params.category = filters.category;
+      if (filters.startDate) params.startDate = filters.startDate;
+      if (filters.endDate) params.endDate = filters.endDate;
       const res = await api.get('/tickets', { params });
       setTickets(res.data.tickets || []);
     } catch (err) {
@@ -30,9 +34,11 @@ export default function TicketsPage() {
 
   useEffect(() => { fetchTickets(); }, [filters]);
 
-  const handleCreate = async (data) => {
+  const handleCreate = async (formData) => {
     try {
-      await api.post('/tickets', data);
+      await api.post('/tickets', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       toast.success('Ticket created');
       setShowCreate(false);
       fetchTickets();
@@ -45,9 +51,14 @@ export default function TicketsPage() {
     <div className="page-container">
       <div className="page-header">
         <h1>Tickets</h1>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          <FiPlus /> New Ticket
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>
+            <FiUpload /> Import
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+            <FiPlus /> New Ticket
+          </button>
+        </div>
       </div>
 
       <div className="filter-bar">
@@ -74,11 +85,27 @@ export default function TicketsPage() {
           <option value="email">Email</option>
           <option value="other">Other</option>
         </select>
+        <input
+          type="date"
+          value={filters.startDate}
+          onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+          placeholder="Start Date"
+          style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+        />
+        <input
+          type="date"
+          value={filters.endDate}
+          onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+          placeholder="End Date"
+          style={{ padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+        />
+        {loading && <span className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></span>}
       </div>
 
-      {loading ? <Loading /> : <TicketList tickets={tickets} />}
+      {loading && tickets.length === 0 ? <Loading /> : <TicketList tickets={tickets} />}
 
       {showCreate && <CreateTicketModal onClose={() => setShowCreate(false)} onSubmit={handleCreate} />}
+      {showImport && <BulkImportModal onClose={() => setShowImport(false)} onComplete={fetchTickets} />}
     </div>
   );
 }
