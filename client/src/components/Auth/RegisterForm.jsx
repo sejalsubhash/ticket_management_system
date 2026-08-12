@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { FiUserPlus } from 'react-icons/fi';
 
 export default function RegisterForm({ onSwitch }) {
-  const [form, setForm] = useState({ name: '', email: '', password: '', department: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', department: '' });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
 
@@ -14,9 +14,18 @@ export default function RegisterForm({ onSwitch }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.password !== form.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
     try {
-      await register(form);
+      const { confirmPassword, ...registerData } = form;
+      await register(registerData);
       toast.success('Account created successfully');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed');
@@ -41,7 +50,11 @@ export default function RegisterForm({ onSwitch }) {
         </div>
         <div className="form-group">
           <label>Password</label>
-          <input type="password" name="password" value={form.password} onChange={handleChange} required minLength={6} />
+          <input type="password" name="password" value={form.password} onChange={handleChange} required minLength={6} placeholder="At least 6 characters" />
+        </div>
+        <div className="form-group">
+          <label>Confirm Password</label>
+          <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required minLength={6} placeholder="Re-enter password" />
         </div>
         <div className="form-group">
           <label>Department</label>
