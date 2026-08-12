@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiTag, FiLogOut, FiUser, FiShield, FiGrid } from 'react-icons/fi';
+import { useTheme } from '../../context/ThemeContext';
+import { FiTag, FiLogOut, FiUser, FiShield, FiGrid, FiSun, FiMoon } from 'react-icons/fi';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -44,17 +46,35 @@ export default function Navbar() {
           </div>
         )}
       </div>
-      {user && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '0.875rem', color: 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <FiUser /> {user.name}
-            <span className="badge" style={{ background: 'var(--gray-700)', color: 'var(--gray-300)', marginLeft: '4px' }}>{user.role}</span>
-          </span>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--gray-400)', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <FiLogOut /> Logout
-          </button>
-        </div>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button
+          onClick={toggleTheme}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--gray-400)',
+            cursor: 'pointer',
+            fontSize: '1.1rem',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '4px',
+          }}
+          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === 'light' ? <FiMoon /> : <FiSun />}
+        </button>
+        {user && (
+          <>
+            <span style={{ fontSize: '0.875rem', color: 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <FiUser /> {user.name}
+              <span className="badge" style={{ background: 'var(--gray-700)', color: 'var(--gray-300)', marginLeft: '4px' }}>{user.role}</span>
+            </span>
+            <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--gray-400)', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <FiLogOut /> Logout
+            </button>
+          </>
+        )}
+      </div>
     </nav>
   );
 }
