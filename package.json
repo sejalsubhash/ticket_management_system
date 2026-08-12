@@ -1,0 +1,15 @@
+{
+  "name": "ticket-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "review": "node scripts/review-changes.js",
+    "review:staged": "node scripts/review-changes.js --staged",
+    "review:commit": "node scripts/review-changes.js",
+    "watch": "node scripts/watch-and-review.js",
+    "watch:server": "node scripts/watch-and-review.js --server",
+    "watch:all": "node scripts/watch-and-review.js --all",
+    "install:hooks": "cp .git/hooks/pre-commit.sample .git/hooks/pre-commit 2>/dev/null || true"
+  },
+  "description": "IT Helpdesk Ticket Management System"
+}
