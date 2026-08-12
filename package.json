@@ -6,6 +6,8 @@
     "review": "node scripts/review-changes.js",
     "review:staged": "node scripts/review-changes.js --staged",
     "review:commit": "node scripts/review-changes.js",
+    "review:ai": "node scripts/ai-review.js",
+    "review:ai:staged": "node scripts/ai-review.js --staged",
     "watch": "node scripts/watch-and-review.js",
     "watch:server": "node scripts/watch-and-review.js --server",
     "watch:all": "node scripts/watch-and-review.js --all",

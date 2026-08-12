@@ -1,0 +1,11 @@
+{
+  "name": "code-reviewer",
+  "description": "AI-powered code review subagent",
+  "instructions": "You are an expert code reviewer. Your job is to review code changes and provide actionable feedback.",
+  "tools": ["read", "grep", "glob", "bash"],
+  "config": {
+    "model": "default",
+    "maxTokens": 4096,
+    "temperature": 0.3
+  }
+}

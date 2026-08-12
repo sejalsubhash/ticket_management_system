@@ -25,9 +25,42 @@ IT Helpdesk Ticket Management System - React + Node.js/Express + Couchbase
 ## Code Review Tools
 - `npm run review` - Review uncommitted changes
 - `npm run review:staged` - Review staged changes only
+- `npm run review:ai` - AI-powered code review
+- `npm run review:ai:staged` - AI review of staged changes
 - `npm run watch` - Auto-review on file changes (client/src)
 - `npm run watch:all` - Auto-review all directories
 - Pre-commit hook runs automatically on `git commit`
+
+## Code Review Subagent
+
+### Configuration
+- **Location**: `.opencode/agents/code-reviewer.json`
+- **Prompt**: `.opencode/agents/code-reviewer-prompt.md`
+
+### When to Use Subagent
+Use the code review subagent when:
+1. **Complex changes** - Multiple files, architectural changes
+2. **Security-sensitive code** - Auth, API endpoints, database queries
+3. **Performance-critical code** - Hot paths, data processing
+4. **Before merge** - Review PRs or major features
+
+### How to Invoke
+```bash
+# Via Task tool
+Task(description="review code", prompt="Review changes in [file/commit]", subagent_type="code-reviewer")
+
+# Via CLI
+npm run review:ai           # Review uncommitted changes
+npm run review:ai:staged    # Review staged changes
+```
+
+### Review Checklist
+- [ ] No security vulnerabilities (injection, XSS, auth bypass)
+- [ ] No logic errors or off-by-one mistakes
+- [ ] Proper error handling (no swallowed errors)
+- [ ] No performance issues (N+1 queries, O(n²))
+- [ ] Follows existing patterns in codebase
+- [ ] Clean code (no console.log, proper naming)
 
 ## Conventions
 - Use CSS variables for colors (dark mode compatible)
