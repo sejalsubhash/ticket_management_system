@@ -25,6 +25,7 @@ const CONFIG = {
     'build/',
     '.env',
     'uploads/',
+    'scripts/review-changes.js', // Don't review ourselves
   ],
   jsPatterns: ['*.js', '*.jsx', '*.ts', '*.tsx'],
   cssPatterns: ['*.css'],
