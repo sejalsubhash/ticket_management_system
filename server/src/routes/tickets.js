@@ -1,11 +1,12 @@
 const router = require('express').Router();
-const { create, list, getById, update, remove, addComment, getComments, dashboard, bulkCreate } = require('../controllers/ticketController');
+const { create, list, getById, update, remove, addComment, getComments, dashboard, bulkCreate, exportTickets } = require('../controllers/ticketController');
 const { authenticate, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 router.use(authenticate);
 
 router.get('/dashboard', dashboard);
+router.get('/export', exportTickets);
 router.get('/', list);
 router.post('/', upload.array('files', 5), create);
 router.post('/bulk', bulkCreate);

@@ -24,8 +24,8 @@
 
 | # | Task | Completed | Notes |
 |---|------|-----------|-------|
-| 5 | Implement ticket filtering by date range | 2026-08-12 | Backend + frontend date inputs |
-| 6 | Add file attachment support to tickets | 2026-08-12 | Multer middleware + UI |
-| 7 | Create bulk ticket import feature | 2026-08-12 | JSON/CSV import with preview |
-| 13 | Add loading spinners on async operations | 2026-08-12 | All async operations |
-| 14 | Improve mobile responsiveness for dashboard | 2026-08-12 | CSS media queries |
+| 3 | Ticket search by title/description | 2026-08-12 | N1QL LIKE query |
+| 5 | Ticket export (CSV/PDF) | 2026-08-12 | CSV export with filters |
+| 7 | Password change/reset | 2026-08-12 | Change password modal |
+| 9 | SLA deadlines to ticket priorities | 2026-08-12 | SLA tracking on dashboard |
+| 10 | Dashboard date range filtering | 2026-08-12 | Date range selector |

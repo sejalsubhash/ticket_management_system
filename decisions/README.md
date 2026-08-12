@@ -132,3 +132,85 @@ Each decision entry:
   - Single column layouts on mobile
   - Horizontal scroll for tables
   - Reduced padding on mobile
+
+### Decision 7: Ticket Search
+
+- **Date**: 2026-08-12
+- **Decision**: Add full-text search on ticket title and description
+- **Context**: Users need to find tickets quickly by keyword
+- **Alternatives**:
+  1. Title-only search - Rejected: too limited
+  2. Full-text search with title + description - Selected: comprehensive
+- **Impact**:
+  - Modified: `server/src/models/ticket.js` (LIKE query with LOWER)
+  - Modified: `server/src/controllers/ticketController.js` (search param)
+  - Modified: `client/src/pages/TicketsPage.jsx` (search input)
+- **Technical Details**:
+  - Case-insensitive search using LOWER()
+  - LIKE query with wildcards for partial matches
+  - Debounced input for performance
+
+### Decision 8: Ticket Export
+
+- **Date**: 2026-08-12
+- **Decision**: Add CSV export with filter support
+- **Context**: Users need to export tickets for reporting and sharing
+- **Alternatives**:
+  1. PDF export - Rejected: more complex, less useful for data
+  2. CSV export - Selected: simple, spreadsheet-compatible
+- **Impact**:
+  - Modified: `server/src/controllers/ticketController.js` (exportTickets)
+  - Modified: `server/src/routes/tickets.js` (GET /export)
+  - Modified: `client/src/pages/TicketsPage.jsx` (export button)
+- **Technical Details**:
+  - Exports filtered tickets (respects current filters)
+  - Downloads as .csv file
+  - Includes all ticket fields
+
+### Decision 9: Password Change
+
+- **Date**: 2026-08-12
+- **Decision**: Add password change functionality
+- **Context**: Users need to change their password for security
+- **Alternatives**:
+  1. Email-based reset - Rejected: requires email service
+  2. In-app password change - Selected: simpler, immediate
+- **Impact**:
+  - Modified: `server/src/controllers/authController.js` (changePassword)
+  - Modified: `server/src/routes/auth.js` (PUT /password)
+  - Created: `client/src/components/Auth/ChangePasswordModal.jsx`
+  - Modified: `client/src/components/Layout/Navbar.jsx` (lock icon)
+- **Technical Details**:
+  - Requires current password verification
+  - New password min 6 characters
+  - Modal with form validation
+
+### Decision 10: SLA Tracking
+
+- **Date**: 2026-08-12
+- **Decision**: Add SLA deadline tracking based on priority
+- **Context**: Need to track response time compliance
+- **Alternatives**:
+  1. External SLA tool - Rejected: adds complexity
+  2. Built-in SLA calculation - Selected: integrated solution
+- **Impact**:
+  - Modified: `client/src/pages/DashboardPage.jsx` (SLA stats)
+- **Technical Details**:
+  - SLA targets: Critical: 4h, High: 8h, Medium: 24h, Low: 72h
+  - Shows remaining time or overdue status
+  - Dashboard shows SLA met/warning/breached counts
+
+### Decision 11: Dashboard Date Range
+
+- **Date**: 2026-08-12
+- **Decision**: Add date range filtering to dashboard
+- **Context**: Users need to view stats for specific time periods
+- **Alternatives**:
+  1. Preset ranges (last 7 days, 30 days) - Rejected: less flexible
+  2. Custom date range - Selected: full control
+- **Impact**:
+  - Modified: `client/src/pages/DashboardPage.jsx` (date inputs)
+- **Technical Details**:
+  - Two date inputs: start and end
+  - Clear button to reset
+  - Filters all dashboard stats

@@ -30,13 +30,40 @@ exports.create = async (req, res, next) => {
 
 exports.list = async (req, res, next) => {
   try {
-    const { status, priority, category, assignedTo, startDate, endDate, page, limit } = req.query;
+    const { search, status, priority, category, assignedTo, startDate, endDate, page, limit } = req.query;
     let createdBy;
     if (req.user.role === 'user') {
       createdBy = req.user.id;
     }
-    const result = await findTickets({ status, priority, category, assignedTo, createdBy, startDate, endDate, page: parseInt(page) || 1, limit: parseInt(limit) || 20 });
+    const result = await findTickets({ search, status, priority, category, assignedTo, createdBy, startDate, endDate, page: parseInt(page) || 1, limit: parseInt(limit) || 20 });
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.exportTickets = async (req, res, next) => {
+  try {
+    const { search, status, priority, category, startDate, endDate, format = 'csv' } = req.query;
+    let createdBy;
+    if (req.user.role === 'user') {
+      createdBy = req.user.id;
+    }
+    const result = await findTickets({ search, status, priority, category, createdBy, startDate, endDate, page: 1, limit: 10000 });
+    
+    if (format === 'csv') {
+      const headers = ['ID', 'Title', 'Description', 'Status', 'Priority', 'Category', 'Created By', 'Assigned To', 'Created At', 'Updated At'];
+      const rows = result.tickets.map(t => [
+        t.id, `"${(t.title || '').replace(/"/g, '""')}"`, `"${(t.description || '').replace(/"/g, '""')}"`,
+        t.status, t.priority, t.category, t.createdBy, t.assignedTo || '', t.createdAt, t.updatedAt
+      ]);
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=tickets.csv');
+      res.send(csv);
+    } else {
+      res.json({ tickets: result.tickets });
+    }
   } catch (error) {
     next(error);
   }

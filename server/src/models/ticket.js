@@ -25,11 +25,12 @@ async function createTicket({ title, description, priority = 'medium', category 
   return { id, ...doc };
 }
 
-async function findTickets({ status, priority, category, assignedTo, createdBy, startDate, endDate, page = 1, limit = 20 } = {}) {
+async function findTickets({ search, status, priority, category, assignedTo, createdBy, startDate, endDate, page = 1, limit = 20 } = {}) {
   const { cluster } = await getCluster();
   let where = ["t.type = 'ticket'"];
   const params = [];
 
+  if (search) { where.push(`(LOWER(t.title) LIKE LOWER($${params.length + 1}) OR LOWER(t.description) LIKE LOWER($${params.length + 1}))`); params.push(`%${search}%`); }
   if (status) { where.push(`t.status = $${params.length + 1}`); params.push(status); }
   if (priority) { where.push(`t.priority = $${params.length + 1}`); params.push(priority); }
   if (category) { where.push(`t.category = $${params.length + 1}`); params.push(category); }
