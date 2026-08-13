@@ -1,27 +1,30 @@
 FROM node:20-alpine AS client-build
 
-WORKDIR /app/client
+WORKDIR /client
 
 COPY client/package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY client/ ./
 
 RUN npm run build
 
+
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY server/package*.json ./server/
+COPY server/package*.json ./
 
-RUN cd server && npm install --omit=dev
+RUN npm ci --omit=dev
 
-COPY server/ ./server/
+COPY server/ ./
 
-COPY --from=client-build /app/client/dist ./client/dist
+RUN mkdir -p uploads
+
+COPY --from=client-build /client/dist ./client/dist
 
 EXPOSE 5000
 
-CMD ["node", "server/src/app.js"]
+CMD ["node", "src/app.js"]
